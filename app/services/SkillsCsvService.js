@@ -16,10 +16,10 @@ const opts = { fields };
 class SkillsCsvService {
   buildCSV(data) {
     const json2csvParser = new Parser(opts);
-    return json2csvParser.parse(this.formatForCSV(data));
+    return json2csvParser.parse(this.format(data));
   }
 
-  formatForCSV(role) {
+  format(role) {
     var data = [];
     role.levels.forEach( level => {
       level.skills.forEach( skill => {
