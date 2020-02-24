@@ -1,12 +1,12 @@
 const cheerioReq = require("cheerio-req");
 
 class SkillsScraperService {
-  getSkillsForFamily() {
+  getSkillsForFamily(family = "Technical job", url = "https://www.gov.uk/guidance/software-developer") {
     return new Promise(resolve => {
-      cheerioReq("https://www.gov.uk/guidance/software-developer", (err, $) => {
+      cheerioReq(url, (err, $) => {
         let family_skills = this.getSkills($);
         resolve({
-          family: "Technical job",
+          family: family,
           title: $("h1").text().trim(),
           levels: $('.govspeak h2')
             .map( (index, level) => {
