@@ -21,11 +21,15 @@ class SkillsScraperService {
                 skills: $(level).nextAll('h3').first().next('ul').find('li').map( (i, duty) => {
                   let name = $(duty).find('strong').text().trim();
                   let skill_level_description = $(duty);
+                  let skill_level = skill_level_description.text().substring(3).match(/\(Relevant skill level: (.*?)\)/)[1];
+
                   skill_level_description.find('strong').remove();
+                  skill_level = skill_level.charAt(0).toUpperCase() + skill_level.slice(1);
+
                   return {
                     name: name,
                     description: family_skills[name],
-                    skill_level: skill_level_description.text().substring(3).match(/\(Relevant skill level: (.*?)\)/)[1],
+                    skill_level: skill_level,
                     skill_level_description: skill_level_description.text().substring(3).replace(/\(Relevant skill level: (.*?)\)/, '').trim(),
                   };
                 }).toArray()
