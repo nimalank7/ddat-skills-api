@@ -3,12 +3,12 @@ const csvBuilder = require('../services/SkillsCsvService');
 
 class ApiController {
 
-  getAllSkills() {
-    return scraper.getSkillsForFamily();
+  getAllSkills(flattern = false) {
+    return scraper.getSkillsForFamily("Technical", "https://www.gov.uk/guidance/software-developer", flattern);
   }
 
   getAllSkillsCsv() {
-    return scraper.getSkillsForFamily().then( data => {
+    return scraper.getSkillsForFamily("Technical", "https://www.gov.uk/guidance/software-developer", true).then( data => {
       return new Promise(resolve => resolve(csvBuilder.buildCSV(data)));
     })
   }

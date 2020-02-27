@@ -9,6 +9,10 @@ router.get('/api', function (req, res) {
   apiController.getAllSkills().then( data => res.json(data));
 })
 
+router.get('/api/flat', function (req, res) {
+  apiController.getAllSkills(true).then( data => res.json(data));
+})
+
 router.get('/csv', function (req, res) {
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=\"' + 'skills-download-' + Date.now() + '.csv\"');
