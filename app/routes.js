@@ -13,6 +13,10 @@ router.get('/api/flat', function (req, res) {
   apiController.getAllSkills(true).then( data => res.json(data));
 })
 
+router.get('/table', function (req, res) {
+  apiController.getAllSkillsForTableView(true).then( data => res.render('table', {data: data}));
+})
+
 router.get('/csv', function (req, res) {
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=\"' + 'skills-download-' + Date.now() + '.csv\"');

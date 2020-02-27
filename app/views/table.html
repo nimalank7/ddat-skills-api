@@ -1,0 +1,21 @@
+
+{% extends "layout.html" %}
+
+{% block pageTitle %}
+  DDAT Skills
+{% endblock %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-full-width">
+      <h1 class="govuk-heading-xl">
+        Table view
+      </h1>{{releaseVersion | log }}
+      {{ govukTable({
+        head: data.headers,
+        rows: data.rows
+      }) }}
+    </div>
+</div>
+{% endblock %}

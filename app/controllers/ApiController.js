@@ -12,6 +12,19 @@ class ApiController {
       return new Promise(resolve => resolve(csvBuilder.buildCSV(data)));
     })
   }
+
+  getAllSkillsForTableView() {
+    return scraper.getSkillsForFamily("Technical", "https://www.gov.uk/guidance/software-developer", true).then( data => {
+      return new Promise(resolve => {
+        resolve( {
+          headers: Object.keys(data[0]).map( (key) => ( { text: key } ) ),
+          rows: data.map( (row) => {
+            return Object.keys(row).map( (key) => ( { text: row[key] } ))
+          })
+        });
+      });
+    })
+  }
 }
 
 module.exports = new ApiController()
