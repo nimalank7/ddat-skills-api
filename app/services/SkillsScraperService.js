@@ -23,6 +23,37 @@ class SkillsScraperService {
     })
   }
 
+  getSkillsForAllFamilies(url) {
+    cheerioReq(url, (err, $) => {
+
+      var family_names = [];
+      var family_data = [];
+      
+      $(".group-title").each(function() {
+        const family_name = $( this ).text();
+        family_names.push(family_name);
+      });
+
+      $(".gem-c-document-list").each(function(index) {
+        $(this).find(".gem-c-document-list__item").each(function() {
+          $(this).find("a").text();
+          const link = $(this).find("a").attr('href');
+          
+          family_data.push({
+            family: family_names[index],
+            href: link
+          })
+        })
+      });
+
+      console.log(family_data);
+    })
+
+    
+
+    // then pass into getSkillsForFamily etc...
+  }
+
   getFamilyDescription($) {
     return {
       pretext: $('.govspeak h2').first().nextAll('p').first().text(),

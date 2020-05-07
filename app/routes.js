@@ -7,6 +7,7 @@ const apiController = require('./controllers/ApiController')
 
 router.get('/api', function (req, res) {
   apiController.getAllSkills().then( data => res.json(data));
+  apiController.getAllSkillsFamily(); // This is what needs to be removed eventually
 })
 
 router.get('/api/flat', function (req, res) {
