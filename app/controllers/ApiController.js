@@ -12,15 +12,15 @@ class ApiController {
   }
 
   getAllSkillsCsv() {
-    return scraper.getSkillsForFamily("Technical", "https://www.gov.uk/guidance/software-developer", true).then( data => {
+    return scraper.getSkillsForFamily("Technical", "https://www.gov.uk/guidance/data-analyst", true).then( data => {
       return new Promise(resolve => resolve(csvBuilder.buildCSV(data)));
     })
-
-    // Presumably store the initial getSkillsForFamily in a variable then append the getAllSkillsFamily etc... then we can call .then etc...
   }
 
+  // Not working for service designer page
+
   getAllSkillsForTableView() {
-    return scraper.getSkillsForFamily("Technical", "https://www.gov.uk/guidance/software-developer", true).then( data => {
+    return scraper.getSkillsForFamily("Technical", "https://www.gov.uk/guidance/service-designer", true).then( data => {
       return new Promise(resolve => {
         resolve( {
           headers: Object.keys(data[0]).map( (key) => ( { text: key } ) ),

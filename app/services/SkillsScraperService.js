@@ -1,6 +1,7 @@
 const cheerioReq = require("cheerio-req");
 
 class SkillsScraperService {
+  
   getSkillsForFamily(family, url, flattenData = false) {
     return new Promise(resolve => {
       cheerioReq(url, (err, $) => {
@@ -13,11 +14,14 @@ class SkillsScraperService {
           title: $("h1").text().trim(),
           levels: $('.govspeak h2')
             .map( (index, level) => {
-              return this.transformLevelData($, family_meta_data, level);
+              return this.transformLevelData($, family_meta_data, level);  
             })
             .toArray()
-            .slice(1,-1)
+            .slice(1,-1) // Removes first and last element as these are 'intro to role of...' and 'read more' in the levels
         };
+
+        // console.log("This is the result:")
+        // console.log(result);
         resolve( flattenData ? this.flattenData(result, family_meta_data) : result );
       });
     })
@@ -28,6 +32,7 @@ class SkillsScraperService {
 
       var family_names = [];
       var family_data = [];
+      var promise_results = [];
       
       $(".group-title").each(function() {
         const family_name = $( this ).text();
@@ -41,25 +46,33 @@ class SkillsScraperService {
           
           family_data.push({
             family: family_names[index],
-            href: link
+            href: "http://www.gov.uk" + link
           })
         })
       });
 
-      console.log(family_data);
-    })
+      console.log(family_data.length)
 
+      family_data.forEach(entry => promise_results.push(this.getSkillsForFamily(entry.family, entry.href, true))) // This is working
+
+      console.log(promise_results.length)
+
+      Promise.all(promise_results).then((values) => {
+        values.forEach(element => console.log(element[0].job_family)) // This is working but now we need to flatten the array as it is an array of arrays
+      });
+
+      // This entire function needs to be wrapped up in a promise etc...
     
 
-    // then pass into getSkillsForFamily etc...
+    })
   }
 
   getFamilyDescription($) {
-    return {
-      pretext: $('.govspeak h2').first().nextAll('p').first().text(),
-      responsibilities: $('.govspeak h2').first().nextAll('ul').first().find('li')
-                    .map((i, text) => $(text).html()).toArray()
-    };
+    let familyDescriptions = {};
+    familyDescriptions.pretext = $('.govspeak h2').first().nextAll('p').first().text();
+    familyDescriptions.responsibilities = $('.govspeak h2').first().nextAll('p').first().next().find('li').map((i, text) => $(text).html()).toArray(); // Working
+
+    return familyDescriptions;
   }
 
   getFamilySkills($) {
@@ -75,22 +88,40 @@ class SkillsScraperService {
   }
 
   transformLevelData($, family_meta_data, level) {
-    let description = $(level).next('p').text().split('.');
-    return {
-      title: $(level).text().trim(),
-      description: description.slice(0, -1).join('. ') + ".",
-      duties_pretext: (description[description.length - 1]).trim(),
-      duties: $(level).next('p').next('ul').find('li').map( (i, duty) => {
-        return $(duty).text().trim();
-      }).toArray(),
-      skills: $(level).nextAll('h3').first().next('ul').find('li').map( (i, duty) => {
+    let transformedData = {}
+    let transformedDataSkillList = $(level).nextAll('h3').first().next('ul')
+
+    transformedData.title = $(level).text().trim()
+    transformedData.description = $(level).next('p').text()
+    transformedData.duties = $(level).next('p').next('ul').find('li').map( (i, duty) => {
+      return $(duty).text().trim();
+    }).toArray()
+    transformedData.skills = $(level).nextAll('h3').first().next('ul').find('li').map( (i, duty) => {
+      let name = $(duty).find('strong').text().trim();
+      let skill_level_description = $(duty);
+      let skill_level_regex_match = skill_level_description.text().match(/\(Relevant skill level: (.*?)\)/)
+      let skill_level = skill_level_regex_match ? skill_level_regex_match[1] : '';
+
+      skill_level_description.find('strong').remove();
+      skill_level = skill_level.charAt(0).toUpperCase() + skill_level.slice(1);
+
+      return {
+        name: name,
+        description: family_meta_data.skills[name],
+        skill_level: skill_level,
+        skill_level_description: skill_level_description.text().substring(3).replace(/\(Relevant skill level: (.*?)\)/, '').trim(),
+      };
+    }).toArray()
+
+    if ($(level).nextAll('h3').first().next('ul').next("h3").length != 0) {
+      var managementSkills = $(level).nextAll('h3').first().next('ul').next("h3").next("ul").find('li').map( (i, duty) => {
         let name = $(duty).find('strong').text().trim();
         let skill_level_description = $(duty);
         let skill_level = skill_level_description.text().substring(3).match(/\(Relevant skill level: (.*?)\)/)[1];
-
+  
         skill_level_description.find('strong').remove();
         skill_level = skill_level.charAt(0).toUpperCase() + skill_level.slice(1);
-
+  
         return {
           name: name,
           description: family_meta_data.skills[name],
@@ -98,26 +129,44 @@ class SkillsScraperService {
           skill_level_description: skill_level_description.text().substring(3).replace(/\(Relevant skill level: (.*?)\)/, '').trim(),
         };
       }).toArray()
+      transformedData.skills = transformedData.skills.concat(managementSkills)
     }
+    // console.log(transformedData)
+
+    return transformedData
   }
 
   flattenData(roles, family_meta_data) {
     var data = [];
-    roles.levels.forEach( level => {
+    roles.levels.forEach( level => { 
       level.skills.forEach( skill => {
         data.push({
           job_family: roles.family,
-          role: roles.title,
-          role_level: level.title,
+          role: roles.title, 
+          role_level: level.title, 
           role_description_intro: `${family_meta_data.description.pretext}\n${family_meta_data.description.responsibilities.map(r => `- ${r}`).join('\n')}`,
-          skills_they_need: `${level.description}\n\n${level.duties_pretext}\n${level.duties.map(d => `- ${d}`).join('\n')}`,
-          skill_name: skill.name,
+          skills_they_need: `${level.description}\n\n${level.duties.map(d => `- ${d}`).join('\n')}`,
+          skill_name: skill.name, 
           skill_description: skill.description,
           skill_level: skill.skill_level,
           skill_level_description: skill.skill_level_description
         });
       });
     });
+
+    if (data.length == 0) {
+      data.push({
+        job_family: roles.family,
+          role: roles.title,
+          role_level: '',
+          role_description_intro: '',
+          skills_they_need: '',
+          skill_name: '',
+          skill_description: '', 
+          skill_level: '', 
+          skill_level_description: ''
+      })
+    }
     return data;
   }
 }
