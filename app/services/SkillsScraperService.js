@@ -2,6 +2,7 @@ const cheerioReq = require("cheerio-req");
 
 class SkillsScraperService {
   
+  // Gets the skills for a particular family - e.g. software developer
   getSkillsForFamily(family, url, flattenData = false) {
     return new Promise(resolve => {
       cheerioReq(url, (err, $) => {
@@ -19,52 +20,51 @@ class SkillsScraperService {
             .toArray()
             .slice(1,-1) // Removes first and last element as these are 'intro to role of...' and 'read more' in the levels
         };
-
-        // console.log("This is the result:")
-        // console.log(result);
         resolve( flattenData ? this.flattenData(result, family_meta_data) : result );
       });
     })
   }
 
   getSkillsForAllFamilies(url) {
-    cheerioReq(url, (err, $) => {
+    return new Promise(resolve => {
+      cheerioReq(url, (err, $) => {
 
-      var family_names = [];
-      var family_data = [];
-      var promise_results = [];
-      
-      $(".group-title").each(function() {
-        const family_name = $( this ).text();
-        family_names.push(family_name);
-      });
-
-      $(".gem-c-document-list").each(function(index) {
-        $(this).find(".gem-c-document-list__item").each(function() {
-          $(this).find("a").text();
-          const link = $(this).find("a").attr('href');
-          
-          family_data.push({
-            family: family_names[index],
-            href: "http://www.gov.uk" + link
+        var family_names = [];
+        var family_data = [];
+        var promise_results = [];
+        
+        $(".group-title").each(function() {
+          const family_name = $( this ).text();
+          family_names.push(family_name);
+        });
+  
+        $(".gem-c-document-list").each(function(index) {
+          $(this).find(".gem-c-document-list__item").each(function() {
+            $(this).find("a").text();
+            const link = $(this).find("a").attr('href');
+            
+            family_data.push({
+              family: family_names[index],
+              href: "http://www.gov.uk" + link
+            })
           })
-        })
-      });
+        });
+  
+        family_data.forEach(entry => promise_results.push(this.getSkillsForFamily(entry.family, entry.href, true))) // This is working
 
-      console.log(family_data.length)
-
-      family_data.forEach(entry => promise_results.push(this.getSkillsForFamily(entry.family, entry.href, true))) // This is working
-
-      console.log(promise_results.length)
-
-      Promise.all(promise_results).then((values) => {
-        values.forEach(element => console.log(element[0].job_family)) // This is working but now we need to flatten the array as it is an array of arrays
-      });
-
-      // This entire function needs to be wrapped up in a promise etc...
-    
-
+        resolve(promise_results);
+      })
     })
+  }
+
+  // Creates a promise consisting of all the promises
+  getSkillsForAllFamiliesFlattened(url) {
+    return this.getSkillsForAllFamilies(url).then(promise_results => {
+      return Promise.all(promise_results).then((values) => {
+        var flattened_array = values.flat()
+        return flattened_array
+      });
+    }) 
   }
 
   getFamilyDescription($) {
