@@ -1,5 +1,6 @@
 applications:
-  - name: ddat
+  - name: ddat-skills-api
+    command: node start.js
     memory: 512M
 
     buildpacks:

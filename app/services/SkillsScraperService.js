@@ -2,7 +2,6 @@ const cheerioReq = require("cheerio-req");
 
 class SkillsScraperService {
   
-  // Gets the skills for a particular family - e.g. software developer
   getSkillsForFamily(family, url, flattenData = false) {
     return new Promise(resolve => {
       cheerioReq(url, (err, $) => {
@@ -18,7 +17,7 @@ class SkillsScraperService {
               return this.transformLevelData($, family_meta_data, level);  
             })
             .toArray()
-            .slice(1,-1) // Removes first and last element as these are 'intro to role of...' and 'read more' in the levels
+            .slice(1,-1)
         };
         resolve( flattenData ? this.flattenData(result, family_meta_data) : result );
       });
@@ -96,7 +95,7 @@ class SkillsScraperService {
     transformedData.duties = $(level).next('p').next('ul').find('li').map( (i, duty) => {
       return $(duty).text().trim();
     }).toArray()
-    transformedData.skills = $(level).nextAll('h3').first().next('ul').find('li').map( (i, duty) => {
+    transformedData.skills = transformedDataSkillList.find('li').map( (i, duty) => {
       let name = $(duty).find('strong').text().trim();
       let skill_level_description = $(duty);
       let skill_level_regex_match = skill_level_description.text().match(/\(Relevant skill level: (.*?)\)/)
@@ -131,7 +130,6 @@ class SkillsScraperService {
       }).toArray()
       transformedData.skills = transformedData.skills.concat(managementSkills)
     }
-    // console.log(transformedData)
 
     return transformedData
   }

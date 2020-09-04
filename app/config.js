@@ -7,7 +7,7 @@ module.exports = {
   serviceName: 'DDAT Skills',
 
   // Default port that prototype runs on
-  port: '3000',
+  port: process.env.PORT,
 
   // Enable or disable password protection on production
   useAuth: 'true',

@@ -113,18 +113,11 @@ app.get(/^([^.]+)$/, function (req, res, next) {
   utils.matchRoutes(req, res, next)
 })
 
-// Catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  var err = new Error(`Page not found: ${req.path}`)
-  err.status = 404
-  next(err)
-})
-
-// Display error
+// Display error - this is our error handler
 app.use(function (err, req, res, next) {
   console.error(err.message)
   res.status(err.status || 500)
-  res.send(err.message)
+  res.render('error')
 })
 
 console.log('\nGOV.UK Prototype Kit v' + releaseVersion)
