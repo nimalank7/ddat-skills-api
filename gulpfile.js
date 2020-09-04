@@ -32,8 +32,6 @@ gulp.task('watch', gulp.parallel(
 ))
 gulp.task('default', gulp.series(
   'generate-assets',
-  gulp.parallel(
-    'watch',
-    'server'
+  'server'
   )
-))
+)
