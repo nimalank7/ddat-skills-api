@@ -33,7 +33,7 @@ class SkillsScraperService {
         var promise_results = [];
         
         $(".group-title").each(function() {
-          const family_name = $( this ).text();
+          const family_name = $( this ).text().replace(" job family", "");
           family_names.push(family_name);
         });
   
